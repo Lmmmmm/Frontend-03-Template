@@ -1,0 +1,9 @@
+<style title="Hello">
+  a::before {
+    color: red;
+    content: "Hello";
+  }
+</style>
+<!-- 由于不想创建文件所以用了data url，作用和style标签一样 但是需要注意转义 -->
+<link rel="stylesheet" title="x" href="data:text/css,p%7Bcolor:bule%7D" />
+<a> world</a>

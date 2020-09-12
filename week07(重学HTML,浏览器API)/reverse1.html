@@ -1,0 +1,19 @@
+<div id="a">
+  <span>1</span>
+  <p>2</p>
+  <a>3</a>
+  <div>4</div>
+</div>
+
+<script>
+  let element = document.getElementById("a");
+  function reverseChildren(element) {
+    //直接在living collection上操作
+    var l = element.childNodes.length;
+    while (l-- > 0) {
+      //appendChild一个节点附加到指定父节点的子节点列表的末尾处,如果某个节点已经拥有父节点，在被传递给此方法后，它首先会被移除，再被插入到新的位置。
+      element.appendChild(element.childNodes[i]);
+    }
+  }
+  reverseChildren(element);
+</script>

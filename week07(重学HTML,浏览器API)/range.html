@@ -1,0 +1,9 @@
+<div id="a">
+  123<span style="background-color: pink">456789</span>0123456789
+</div>
+<script>
+  let range = new Range();
+  //选中半个节点，后面会自动补上一个结束标签
+  range.setStart(document.getElementById("a").childNodes[1].childNodes[0], 3); //childNodes[1]有一个文本节点，如果我们想在这个文本节点里面去选就得加childNodes[0]
+  range.setEnd(document.getElementById("a").childNodes[2], 3); //0123456789的0123
+</script>
