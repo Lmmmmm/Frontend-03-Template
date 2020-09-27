@@ -1,0 +1,142 @@
+<style>
+  .cell {
+    display: inline-block;
+    line-height: 7px;
+    width: 6px;
+    height: 6px;
+    background-color: gray;
+    border-bottom: solid 1px white;
+    border-right: solid 1px white;
+    vertical-align: middle;
+  }
+  #container {
+    width: 701px;
+  }
+</style>
+
+<div id="container"></div>
+<button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+<script>
+  //把先进先出的queue变成一个使用优先级来提供点的数据结构
+  class Sorted {
+    constructor(data, compare) {
+      this.data = data.slice();
+      this.compare = compare || ((a, b) => a - b);
+    }
+    //take的时候拿出一个最小的
+    take() {
+      if (!this.data.length) return; //return null的话以后null也会参与compare
+      let min = this.data[0];
+      let minIndex = 0;
+
+      for (let i = 1; i < this.data.length; i++) {
+        if (this.compare(this.data[i], min) < 0) {
+          min = this.data[i];
+          minIndex = i;
+        }
+      }
+      //如果使用splice去删除数组中的元素的话会导致该位置后面的元素都要往前移一位，复杂度是O(n)
+      //因此这里是把最后一位和当前位的元素互换位置然后使用一次pop，这样就是O(1)的复杂度。这样做的理由是该数组本身就是无序的
+      this.data[minIndex] = this.data[this.data.length - 1];
+      this.data.pop();
+      return min;
+    }
+    give(v) {
+      this.data.push(v);
+    }
+  }
+
+  //为了避免开销过大 我们使用一维数组代替二维数组
+  let map = localStorage["map"]
+    ? JSON.parse(localStorage["map"])
+    : Array(10000).fill(0);
+
+  let container = document.getElementById("container");
+  for (let y = 0; y < 100; y++) {
+    for (let x = 0; x < 100; x++) {
+      let cell = document.createElement("div");
+      cell.classList.add("cell");
+
+      if (map[100 * y + x] == 1) cell.style.backgroundColor = "black";
+
+      cell.addEventListener("mousemove", () => {
+        // 是否是按下鼠标的状态下移动的
+        if (mousedown) {
+          //右键清除
+          if (clear) {
+            cell.style.backgroundColor = "";
+            map[100 * y + x] = 0;
+          }
+          //左键画图
+          else {
+            cell.style.backgroundColor = "black";
+            map[100 * y + x] = 1;
+          }
+        }
+      });
+      container.appendChild(cell);
+    }
+  }
+
+  let mousedown = false;
+  let clear = false;
+  document.addEventListener("mousedown", (e) => {
+    mousedown = true;
+    clear = e.which === 3;
+  });
+  //event.which 针对键盘和鼠标事件，这个属性能确定你到底按的是哪个键。
+  //左键报告1，中间键报告2，右键报告3。
+  document.addEventListener("mouseup", () => (mousedown = false));
+  //防止右键弹出菜单
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+  function sleep(t) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, t);
+    });
+  }
+  async function findPath(map, start, end) {
+    let table = Object.create(map); //可以迅速获得一个新的map，并且不影响原来的map
+    let queue = new Sorted([start], (a, b) => distance(a) - distance(b));
+
+    async function insert(x, y, pre) {
+      if (x < 0 || x >= 100 || y < 0 || y >= 100) return;
+      if (table[y * 100 + x]) return;
+      await sleep(5); //为了更好看出UI的变化
+      container.children[y * 100 + x].style.backgroundColor = "lightgreen";
+      table[y * 100 + x] = pre; //table里面存的都是pre节点
+      queue.give([x, y]);
+    }
+
+    //计算与end节点的距离
+    function distance(point) {
+      return (point[0] - end[0]) ** 2 + (point[1] - end[1]) ** 2;
+    }
+
+    while (queue.data.length) {
+      let [x, y] = queue.take();
+      console.log(x, y);
+      //find goal
+      if (x === end[0] && y === end[1]) {
+        let path = [];
+        //从后往前找它的起始节点
+        while (x != start[0] || y != start[1]) {
+          path.push(map[y * 100 + x]);
+          [x, y] = table[y * 100 + x];
+          container.children[y * 100 + x].style.backgroundColor = "purple";
+        }
+        return path;
+      }
+      await insert(x - 1, y, [x, y]);
+      await insert(x, y - 1, [x, y]);
+      await insert(x + 1, y, [x, y]);
+      await insert(x, y + 1, [x, y]);
+      //斜项也做了
+      await insert(x - 1, y - 1, [x, y]);
+      await insert(x + 1, y - 1, [x, y]);
+      await insert(x + 1, y + 1, [x, y]);
+      await insert(x - 1, y + 1, [x, y]);
+    }
+    return null;
+  }
+</script>
