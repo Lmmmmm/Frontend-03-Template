@@ -1,0 +1,28 @@
+<script>
+  var regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|(\*)|(\/)|(\+)|(\-)/g;
+  //对应regexp
+  var dictionary = [
+    "Number",
+    "Whitespace",
+    "LineTerminator",
+    "*",
+    "/",
+    "+",
+    "-",
+  ];
+
+  function tokenize(source) {
+    var result = null;
+    while (true) {
+      //exec() 方法在一个指定字符串中执行一个搜索匹配
+      result = regexp.exec(source);
+      if (!result) break;
+      for (var i = 1; i <= dictionary.length; i++) {
+        if (result[i]) console.log(dictionary[i - 1]);
+      }
+      console.log(result);
+    }
+  }
+
+  tokenize("1024 + 10 * 25");
+</script>
