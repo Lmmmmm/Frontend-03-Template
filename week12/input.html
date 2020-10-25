@@ -1,0 +1,67 @@
+<input type="text" id="r" value="">
+<script>
+  
+  let callbacks = new Map();
+  let reactivities = new Map();
+  let usedReactivities = [];
+
+  let p1 = reactive({
+    val: 10
+  });
+
+  effect(() => {
+    // val发生变化时自动设置input值
+    document.getElementById('r').value = p1.val;
+  })
+
+  function reactive(object) {
+    if (reactivities.has(object)) {
+      return reactivities.get(object);
+    }
+    let proxy = new Proxy(object, {
+      get(obj, prop) {
+        usedReactivities.push([obj, prop]);
+        if (typeof obj[prop] === 'object') {
+          return reactive(obj[prop]);
+        }
+        return obj[prop];
+      },
+      set(obj, prop, val) {
+        obj[prop] = val;
+
+        if (callbacks.get(obj)) {
+          if (callbacks.get(obj).get(prop)) {
+            // 执行保存的回调函数
+            for (let call of callbacks.get(obj).get(prop)) {
+              call && call();
+            }
+          }
+        }
+
+        return obj[prop];
+      }
+    });
+    
+    reactivities.set(object, proxy);
+
+    return proxy;
+  }
+
+  function effect(callback) {
+    // 将回调函数保存
+    // callbacks.push(callback);
+    usedReactivities = [];
+    callback();
+
+    for(let reactive of usedReactivities) {
+      if (!callbacks.has(reactive[0])) {
+        callbacks.set(reactive[0], new Map());
+      }
+      if (!callbacks.get(reactive[0]).has(reactive[1])) {
+        callbacks.get(reactive[0]).set(reactive[1], []);
+      }
+      callbacks.get(reactive[0]).get(reactive[1]).push(callback);
+    }
+  }
+
+</script>

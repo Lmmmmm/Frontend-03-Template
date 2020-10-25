@@ -1,0 +1,25 @@
+<div id="drag" style="vertical-align: middle;width: 50px;height: 50px;display: inline-block;background: pink;"></div>
+<script>
+let baseX = 0, baseY = 0;
+
+drag.addEventListener('mousedown', event => {
+  let startX = event.clientX, startY = event.clientY;
+
+  // 移动div
+  const move = event => {
+    drag.style.transform = `translateX(${baseX + event.clientX - startX}px) translateY(${baseY + event.clientY - startY}px)`;
+  }
+
+  // 移除监听
+  const up = event => {
+    baseX = baseX + event.clientX - startX;
+    baseY = baseY + event.clientY - startY;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', up);
+  }
+
+  document.addEventListener('mousemove', move);
+  document.addEventListener('mouseup', up);
+
+});
+</script>
