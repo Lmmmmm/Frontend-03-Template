@@ -15,9 +15,8 @@ export function createElement(type, attributes, ...children) {
 }
 
 export class Component {
-  constructor(type) {
-    this.root = this.render();
-  }
+  constructor(type) {}
+
   setAttribute(name, value) {
     this.root.setAttribute(name, value);
   }
